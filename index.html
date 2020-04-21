@@ -1,0 +1,299 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+	<meta http-equiv="content-type" content="text/html" />
+	<meta name="author" content="Administrator" />
+	<title>Untitled 1</title>
+    
+    <style>
+    
+        .grid-container{
+            display: grid;
+            grid-template-columns: 1fr 2fr 2fr;
+            grid-template-rows: 42px 3fr 2fr;
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+        
+        .grid-container > div{
+            overflow: auto;
+        }
+        .table-show, .header{
+            grid-column-start: 1; 
+            grid-column-end: 4;  
+        }
+    </style>
+</head>
+<body>
+
+
+<div class="grid-container">
+   <div class="header">
+        <button id="saveConn"> Connection </button>
+   </div>
+   <div class="side-schema">
+        <div></div>
+        <div></div>
+   </div>
+   <div class="sql-query">
+        <div style="display: grid;grid-template-columns: 20px 3fr;grid-template-rows: 100%;">
+            <div style="background-color: #eee;">
+                <div>1.</div>
+            </div>
+            <div class="editor-query" style="white-space: pre-line;" contenteditable="true">
+                SELECT 
+                FROM 
+                WHERE
+            </div>
+        </div>
+   </div>
+   <div class="table-info">
+        INFO
+   </div>
+   <div class="table-show">
+        SHOW
+   </div>
+</div>
+
+<script src="http://localhost/src/jquery/jquery-3.4.1.min.js"></script> 
+<!--script src="https://www.gstatic.com/firebasejs/5.2.0/firebase.js"></script-->
+<script>
+
+var sesi = 'risang';
+
+var $nameconn = [];
+var $schema = [];
+
+var $connection = {
+    'host' : 'localhost',
+    'user' : 'root',
+    'password' : ''
+}
+
+var $use = '';
+var $table = {};
+
+var $actions = {
+    
+    'getDatabase' : function(data){
+        var li = '';
+        
+        if( data.databases ){
+            
+            $.each(data.databases, function(a, b){
+                li += '<div>';
+                
+                li += '<a class="schema">'+b+'</a>';
+                
+                li += '</div>';
+            })
+            
+            $schema = data.databases
+        }
+        
+        $('.side-schema > div').eq(1).html(li);
+    },
+    
+    'getTable' : function(data){
+        
+        if( data.tables ){
+            
+            $table[data.schema]
+            
+        }
+    }
+    
+};
+/*
+var firebaseConfig = {
+    apiKey: "AIzaSyBeGQCdee941uJkUPIoht5UUSajVvF1rqI",
+    authDomain: "verobo-ced13.firebaseapp.com",
+    databaseURL: "https://verobo-ced13.firebaseio.com",
+    projectId: "verobo-ced13",
+    storageBucket: "verobo-ced13.appspot.com",
+    messagingSenderId: "72256327388",
+    appId: "1:72256327388:web:e4dab526510ed10f"
+};
+  
+// Initialize Firebase
+firebase.initializeApp(firebaseConfig);
+
+var database = firebase.database(); 
+var ref      = database.ref('session/'+sesi);
+var onproses = false;
+
+ref.on('child_changed', function(snapshot){  
+     var data = snapshot.val(); 
+     var tipe = snapshot.key;
+     
+     if( parseFloat(data.tipe) == 1 ){
+        onproses = true;
+     }else{
+        ref.child('request').remove();
+        onproses = false;
+     }
+     
+     if( parseFloat(data.tipe) == 0 && data.action ){
+        
+        if( action.hasOwnProperty(data.action) ){
+            ambil(action[data.action])
+        }
+        
+     }
+});
+
+function ambil(complete){
+    //complete = action
+    
+    $.ajax({
+        url : 'http://localhost/modul/upload/file/'+sesi+'.json',
+        dataType: 'json',
+        success: complete,
+        complete: function(a, b){
+            if( b != 'success' ){
+                alert('Error Get Data');
+            }
+        }
+        
+    })
+}
+*/
+$('#saveConn').click(function(e){
+    
+    var tm = new Date();
+    
+    var postData = {
+        'url'   : 'http://localhost/dev/db/getDatabase.php',
+        'data'  : $connection,
+        'time'  : tm.getTime(),
+        'tipe'  : 1,
+        'action': 'getDatabase'
+    }
+    
+    //if( !onproses ){
+        //ref.child('request').set( postData );
+    //}
+    
+    getAjax( postData.url, postData.data, postData.action );
+});  
+  
+  
+$(document).on('click', '.side-schema .schema', function(){
+    var ini = $(this);
+    var db  = ini.text();
+    
+    if( !$table.hasOwnProperty(db) ){
+        var tm = new Date();
+        
+        var postData = {
+            'url'   : 'http://localhost/dev/db/getTabel.php',
+            'data'  : $.extend({}, $connection, {'database' : db}),
+            'time'  : tm.getTime(),
+            'tipe'  : 1,
+            'action': 'getTable'
+        }
+        
+        //if( !onproses ){
+            //ref.child('request').set( postData );
+        //}
+        
+        getAjax( postData.url, postData.data, postData.action );
+        
+    }else{
+        
+        
+        
+    }
+    
+});
+
+$('.editor-query').on('foucs', function(){
+    
+    var ini = $(this);
+    
+    //setLineEditor(ini.text());
+    
+}).on('blur cut paste keyup', function(ev){
+    var ini = $(this);
+    
+    //if(ev.which)
+    
+    setLineEditor(ini.text());
+}).on('keypress', function(ev){ 
+       
+    if(ev.which != 13){
+        return true;
+    }
+    
+    var frm = document.createDocumentFragment();
+    
+    var nw = document.createTextNode('\n');
+    frm.appendChild(nw);
+    
+    var range = window.getSelection().getRangeAt(0);
+    
+    range.deleteContents();
+    range.insertNode(frm);
+    
+    range = document.createRange();
+    range.setStartAfter(nw);
+    range.collapse(true);
+    
+    var sel = window.getSelection();
+    sel.removeAllRanges();
+    sel.addRange(range);
+    
+    return false;
+})
+
+
+setLineEditor($('.editor-query').text());
+
+function setLineEditor(txt){
+    console.log(txt);
+    
+    var mtch = txt.match(/\n/g);
+    var ln   = mtch ? mtch.length + 1 : 1;
+    var line = '';
+    
+    for(var i=1; i<=ln; i++){
+        line += '<div>'+i+'</div>';    
+    }
+    
+    $('.editor-query').parent().find('div').eq(0).html(line)
+}
+
+</script>  
+
+<script>
+
+function getAjax(url, data, action){
+    var complete = function(){}
+    
+    if( $actions.hasOwnProperty(action) ){
+        complete = $actions[action];
+    }
+    
+    $.ajax({
+        url : url,
+        data: data,
+        type: 'POST',
+        dataType: 'json',
+        success: complete,
+        complete: function(a, b){
+            if( b != 'success' ){
+                alert('Error Get Data');
+            }
+        }
+        
+    })
+    
+    
+}
+
+</script>  
+</body>
+</html>
