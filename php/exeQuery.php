@@ -28,7 +28,7 @@ if( $query instanceof mysqli_result ){
         
         echo json_encode($return);
         
-        require_once('kirim.php');
+        //require_once('kirim.php');
         die();
     }
 
@@ -43,7 +43,7 @@ if( $query instanceof mysqli_result ){
     
     echo json_encode($return);
     
-    require_once('kirim.php');
+    //require_once('kirim.php');
     die();
     
 }else{
@@ -57,7 +57,7 @@ if( $query instanceof mysqli_result ){
     
     echo json_encode($return);
     
-    require_once('kirim.php');
+    //require_once('kirim.php');
     die();
     
 }
