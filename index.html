@@ -3,69 +3,134 @@
 <head>
 	<meta http-equiv="content-type" content="text/html" />
 	<meta name="author" content="Administrator" />
-	<title>Untitled 1</title>
+	<title>Mysql GUI</title>
     
-    <style>
-    
-        .grid-container{
-            display: grid;
-            grid-template-columns: 1fr 2fr 2fr;
-            grid-template-rows: 42px 3fr 2fr;
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-        }
-        
-        .grid-container > div{
-            overflow: auto;
-        }
-        .table-show, .header{
-            grid-column-start: 1; 
-            grid-column-end: 4;  
-        }
-    </style>
+    <link href="http://localhost/src/bootstrap/css/bootstrap.css" rel="stylesheet" />
+    <link href="src/css/style.css" rel="stylesheet" />
 </head>
 <body>
 
-
-<div class="grid-container">
+<div class="body-container">
+   
    <div class="header">
-        <button id="saveConn"> Connection </button>
+        <ul class="nav nav-pills" role="tablist">
+            
+            <li class="nav-item">
+                <a id="saveConn" class="nav-link" href="javascript:void(0)">
+                    add
+                </a>
+            </li>
+            
+        </ul>
+        
    </div>
-   <div class="side-schema">
-        <div></div>
-        <div></div>
-   </div>
-   <div class="sql-query">
-        <div style="display: grid;grid-template-columns: 20px 3fr;grid-template-rows: 100%;">
-            <div style="background-color: #eee;">
-                <div>1.</div>
+   
+   <div class="tab-content">
+        <div class="tab-panel body-editor" id="satu">
+            <div class="side-schema">
+                <div>
+                
+                
+                </div>
+                <div></div>
             </div>
-            <div class="editor-query" style="white-space: pre-line;" contenteditable="true">
-                SELECT 
-                FROM 
-                WHERE
+            <div class="sql-query">
+                <div style="display: grid;grid-template-columns: 20px 3fr;grid-template-rows: 100%;">
+                    <div style="background-color: #eee;">
+                        <div>1.</div>
+                    </div>
+                    <div class="editor-query" style="white-space: pre-line;" contenteditable="true"></div>
+                </div>
             </div>
+            <div class="table-info">
+                INFO
+           </div>
+           <div class="table-show">
+                SHOW
+           </div>
         </div>
    </div>
-   <div class="table-info">
-        INFO
-   </div>
-   <div class="table-show">
-        SHOW
-   </div>
+   
+
 </div>
 
+
+<div id="modalConnetion" class="modal fade" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <form action="../db/testConn.php">
+                    
+            <div class="modal-body">
+                <h4 class="modal-title"> Setup Connection </h4>
+                
+                    <div class="form-row">
+                        <div class="form-group col-sm-10">
+                            <label>Name Connection</label>
+                            <input type="text" name="nama" class="form-control" />
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group col-sm-6">
+                            <label>Host</label>
+                            <input type="text" name="host" class="form-control" />
+                        </div>
+                        <div class="form-group col-sm-4">
+                            <label>Port</label>
+                            <input type="text" name="port" class="form-control" />
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group col-sm-6">
+                            <label>User</label>
+                            <input type="text" name="user" class="form-control" />
+                        </div>
+                        <div class="form-group col-sm-6">
+                            <label>Password</label>
+                            <input type="password" name="password" class="form-control" />
+                        </div>
+                    </div>
+                
+                
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-dismiss="modal"> Close </button>
+                <button type="submit" class="btn btn-primary"> Save </button>
+            </div>
+            
+            </form>
+        </div>
+        
+    </div>
+</div>
+
+<div class="loading">
+    <div>Loading...</div>
+</div>
 <script src="http://localhost/src/jquery/jquery-3.4.1.min.js"></script> 
-<!--script src="https://www.gstatic.com/firebasejs/5.2.0/firebase.js"></script-->
+<script src="http://localhost/src/bootstrap/js/bootstrap.min.js"></script> 
+<script src="src/js/ini.js"></script>
 <script>
 
-var sesi = 'risang';
 
-var $nameconn = [];
-var $schema = [];
+$('#modalConnetion form').on('berhasil.submit', function(a, data){
+    
+    if( data.valid ){
+        
+        var li = '<li class="nav-item">';
+            li += '<a class="nav-link" data-toggle="tab" data-target="#satu">' + data.host +'</a>';
+            li += '</li>';
+        
+        li = $(li).data('config', data);
+        
+        $('.header ul.nav').prepend(li);
+        
+        $('.header ul.nav li a').eq(0).tab('show');
+        
+        $('#modalConnetion').modal('hide');
+    }
+    
+    console.log(data, $('#header ul.nav'));
+})
 
 var $connection = {
     'host' : 'localhost',
@@ -75,6 +140,7 @@ var $connection = {
 
 var $use = '';
 var $table = {};
+var $view  = {};
 
 var $actions = {
     
@@ -84,7 +150,7 @@ var $actions = {
         if( data.databases ){
             
             $.each(data.databases, function(a, b){
-                li += '<div>';
+                li += '<div data-schema="'+b+'">';
                 
                 li += '<a class="schema">'+b+'</a>';
                 
@@ -101,81 +167,31 @@ var $actions = {
         
         if( data.tables ){
             
-            $table[data.schema]
-            
+            $table[data.schema] = data.tables;
+
         }
+        
+        if( data.views ){
+            
+            $view[data.schema] = data.views;
+
+        }
+        
+        showTable(data.schema);
     }
     
 };
-/*
 
-  
-// Initialize Firebase
-firebase.initializeApp(firebaseConfig);
-
-var database = firebase.database(); 
-var ref      = database.ref('session/'+sesi);
-var onproses = false;
-
-ref.on('child_changed', function(snapshot){  
-     var data = snapshot.val(); 
-     var tipe = snapshot.key;
-     
-     if( parseFloat(data.tipe) == 1 ){
-        onproses = true;
-     }else{
-        ref.child('request').remove();
-        onproses = false;
-     }
-     
-     if( parseFloat(data.tipe) == 0 && data.action ){
-        
-        if( action.hasOwnProperty(data.action) ){
-            ambil(action[data.action])
-        }
-        
-     }
-});
-
-function ambil(complete){
-    //complete = action
-    
-    $.ajax({
-        url : 'http://localhost/modul/upload/file/'+sesi+'.json',
-        dataType: 'json',
-        success: complete,
-        complete: function(a, b){
-            if( b != 'success' ){
-                alert('Error Get Data');
-            }
-        }
-        
-    })
-}
-*/
 $('#saveConn').click(function(e){
-    
-    var tm = new Date();
-    
-    var postData = {
-        'url'   : 'http://localhost/dev/db/getDatabase.php',
-        'data'  : $connection,
-        'time'  : tm.getTime(),
-        'tipe'  : 1,
-        'action': 'getDatabase'
-    }
-    
-    //if( !onproses ){
-        //ref.child('request').set( postData );
-    //}
-    
-    getAjax( postData.url, postData.data, postData.action );
+    $('#modalConnetion').modal('show');
 });  
   
   
 $(document).on('click', '.side-schema .schema', function(){
     var ini = $(this);
     var db  = ini.text();
+    
+    $use = db;
     
     if( !$table.hasOwnProperty(db) ){
         var tm = new Date();
@@ -192,7 +208,7 @@ $(document).on('click', '.side-schema .schema', function(){
         
     }else{
         
-        
+        showTable(db);
         
     }
     
@@ -241,7 +257,6 @@ $('.editor-query').on('foucs', function(){
 setLineEditor($('.editor-query').text());
 
 function setLineEditor(txt){
-    console.log(txt);
     
     var mtch = txt.match(/\n/g);
     var ln   = mtch ? mtch.length + 1 : 1;
@@ -254,34 +269,20 @@ function setLineEditor(txt){
     $('.editor-query').parent().find('div').eq(0).html(line)
 }
 
-</script>  
-
-<script>
-
-function getAjax(url, data, action){
-    var complete = function(){}
+function showTable(db){
+    var tbl = $('div[data-schema]');
     
-    if( $actions.hasOwnProperty(action) ){
-        complete = $actions[action];
-    }
-    
-    $.ajax({
-        url : url,
-        data: data,
-        type: 'POST',
-        dataType: 'json',
-        success: complete,
-        complete: function(a, b){
-            if( b != 'success' ){
-                alert('Error Get Data');
-            }
-        }
+    if( !$table.hasOwnProperty(db) ){
         
-    })
-    
+        $.each($table[db], function(a, b){
+            
+        })
+        
+    }
     
 }
 
 </script>  
+
 </body>
 </html>
